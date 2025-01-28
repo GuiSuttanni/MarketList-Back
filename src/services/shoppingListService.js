@@ -2,21 +2,52 @@ const db = require('../config/firestore');
 
 const collection = db.collection('shoppingList');
 
-exports.getItems = async () => {
-  const snapshot = await collection.get();
+exports.updateItem = async (houseCode, id, text) => {
+  const itemRef = collection.doc(id);
+  const doc = await itemRef.get();
+
+  if (!doc.exists || doc.data().houseCode !== houseCode) {
+    throw new Error('Item não encontrado.');
+  }
+
+  await itemRef.update({ text });
+  return { id, houseCode, text };
+};
+
+exports.deleteItem = async (houseCode, id) => {
+  const itemRef = collection.doc(id);
+  const doc = await itemRef.get();
+
+  if (!doc.exists || doc.data().houseCode !== houseCode) {
+    throw new Error('Item não encontrado.');
+  }
+
+  await itemRef.delete();
+};
+
+const housesCollection = db.collection('houses');
+
+exports.getItems = async (houseCode) => {
+  const snapshot = await collection.where('houseCode', '==', houseCode).get();
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
 
-exports.addItem = async (text) => {
-  const ref = await collection.add({ text });
-  return { id: ref.id, text };
+exports.verifyHouse = async (houseCode) => {
+  const snapshot = await housesCollection.where('houseCode', '==', houseCode).get();
+  return !snapshot.empty;
 };
 
-exports.updateItem = async (id, text) => {
-  await collection.doc(id).update({ text });
-  return { id, text };
+exports.checkHouseExists = async (houseCode) => {
+  const snapshot = await housesCollection.where('houseCode', '==', houseCode).get();
+  return !snapshot.empty;
 };
 
-exports.deleteItem = async (id) => {
-  await collection.doc(id).delete();
+exports.registerHouse = async (houseCode) => {
+  try {
+    await housesCollection.add({ houseCode });
+    return true;
+  } catch (error) {
+    console.error('Erro ao registrar a casa:', error);
+    return false;
+  }
 };
