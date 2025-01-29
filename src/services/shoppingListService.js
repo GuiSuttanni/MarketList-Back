@@ -25,6 +25,16 @@ exports.deleteItem = async (houseCode, id) => {
   await itemRef.delete();
 };
 
+exports.addItem = async (houseCode, text) => {
+  const newItemRef = collection.doc();
+  const id = newItemRef.id;
+
+  const newItem = { id, houseCode, text };
+  await newItemRef.set(newItem);
+
+  return newItem;
+};
+
 const housesCollection = db.collection('houses');
 
 exports.getItems = async (houseCode) => {
