@@ -6,7 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "start": "vercel dev"
+    "start": "node src/index.js"
   },
   "keywords": [],
   "author": "",
